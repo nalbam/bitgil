@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
-import { MOCK_FACILITIES } from "@/data/mock/facilities";
+import { listFacilitiesByArea } from "@/server/repositories/facility-repository";
+import { DEFAULT_AREA } from "@/data/mock/areas";
+import type { NextRequest } from "next/server";
 
-export function GET() {
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
+  const areaId = searchParams.get("areaId") ?? DEFAULT_AREA.id;
+
+  const facilities = await listFacilitiesByArea(areaId);
+
   return NextResponse.json({
     ok: true,
-    data: MOCK_FACILITIES,
-    total: MOCK_FACILITIES.length,
+    data: facilities,
+    total: facilities.length,
   });
 }

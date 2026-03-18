@@ -31,3 +31,16 @@ export function getServerEnv() {
     dynamoDbTableName: requireServerEnv("DYNAMODB_TABLE_NAME"),
   };
 }
+
+/**
+ * Returns true when all required DynamoDB environment variables are present.
+ * Use this to decide between real DB access and mock fallback.
+ */
+export function isDynamoDbConfigured(): boolean {
+  return Boolean(
+    process.env.AWS_REGION &&
+      process.env.AWS_ACCESS_KEY_ID &&
+      process.env.AWS_SECRET_ACCESS_KEY &&
+      process.env.DYNAMODB_TABLE_NAME,
+  );
+}
