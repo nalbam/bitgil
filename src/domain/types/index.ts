@@ -1,1 +1,19 @@
-export type { Facility, FacilityType, LatLng, MapState, Route, RoutePoint, SafetyLevel } from "@/lib/maps/types";
+export type {
+  Area,
+  ExtendedFacilityType,
+  Facility,
+  FacilityInfluence,
+  FacilityType,
+  GeoPoint,
+  LatLng,
+  MapState,
+  Route,
+  RouteOption,
+  RoutePoint,
+  RouteSafetyAnalysis,
+  RouteSummary,
+  SafetyFactor,
+  SafetyLevel,
+  SafetyScore,
+  School,
+} from "@/lib/maps/types";
