@@ -10,27 +10,30 @@ import { useSchoolData } from "@/hooks/useSchoolData";
 import type { School } from "@/lib/maps/types";
 import type { DomainFacility } from "@/domain/entities/facility";
 
-// Osan city center
-const OSAN_CENTER = { lat: 37.1500, lng: 127.0680 };
+const OSAN_CENTER = { lat: 37.15, lng: 127.068 };
 
 export default function HomePage() {
   const [allSchools, setAllSchools] = useState<School[]>([]);
-  const [allStreetlights, setAllStreetlights] = useState<DomainFacility[]>([]);
+  const [streetlights, setStreetlights] = useState<DomainFacility[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const { routes, isLoading } = useSchoolData(selectedSchool);
 
-  // Load all schools and streetlights on mount
+  // Load all schools on mount
   useEffect(() => {
     fetch("/api/schools")
       .then((r) => r.json())
       .then((json) => {
         if (json.ok) setAllSchools(json.data);
       });
-    fetch("/api/facilities?areaId=area-osan&type=streetlight")
+  }, []);
+
+  // Fetch all streetlights once on mount
+  useEffect(() => {
+    fetch("/api/facilities?type=streetlight")
       .then((r) => r.json())
       .then((json) => {
-        if (json.ok) setAllStreetlights(json.data);
+        if (json.ok) setStreetlights(json.data);
       });
   }, []);
 
@@ -50,21 +53,18 @@ export default function HomePage() {
     <div className="flex h-screen flex-col bg-[#0a0f1e] text-slate-100">
       <Header />
 
-      {/* Search bar */}
       <div className="border-b border-white/5 px-4 py-3">
         <SchoolSearch onSelect={handleSchoolSelect} selectedSchool={selectedSchool} />
       </div>
 
-      {/* Main content: map + panel */}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        {/* Map — always visible with Osan overview */}
         <div className="relative h-[50vh] lg:h-auto lg:flex-[2]">
           <BitgilMap
             center={mapCenter}
             schools={allSchools}
             selectedSchoolId={selectedSchool?.id ?? null}
             onSchoolSelect={handleSchoolSelect}
-            streetlights={allStreetlights}
+            streetlights={streetlights}
             routes={routes}
             selectedRouteId={effectiveRouteId}
             onRouteSelect={handleRouteSelect}
@@ -76,7 +76,6 @@ export default function HomePage() {
           )}
         </div>
 
-        {/* Route panel */}
         <div className="flex-1 overflow-y-auto border-t border-white/5 p-4 lg:max-w-sm lg:border-l lg:border-t-0">
           {routes.length > 0 ? (
             <RouteComparisonPanel

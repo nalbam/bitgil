@@ -34,3 +34,14 @@ export const ROUTE_COLORS: Record<
 
 export const ROUTE_SELECTED_MULTIPLIER = 1.5;
 export const ROUTE_UNSELECTED_OPACITY = 0.3;
+
+/**
+ * Convert hex color string to RGBA array for deck.gl.
+ */
+export function hexToRgba(hex: string, alpha = 255): [number, number, number, number] {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return [r, g, b, alpha];
+}

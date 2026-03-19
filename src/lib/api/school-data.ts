@@ -2,63 +2,74 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import type { School } from "@/lib/maps/types";
 
-interface RawSchool {
-  SCHOOL_ID: string;
-  SCHOOL_NM: string;
-  SCHOOL_RK_DIV_NM: string;
-  OPERT_STATE_NM: string;
-  REFINE_ROADNM_ADDR: string;
-  REFINE_WGS84_LAT: string;
-  REFINE_WGS84_LOGT: string;
+interface CsvSchool {
+  id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
 }
 
 let cachedSchools: School[] | null = null;
 
+function loadCsv(): CsvSchool[] {
+  const csvPath = join(process.cwd(), "data", "초․중등학교위치현황(제공표준).csv");
+  const content = readFileSync(csvPath, "utf-8");
+  const lines = content.split("\n");
+  const header = lines[0]!.split(",");
+
+  const idxId = header.indexOf("학교ID");
+  const idxName = header.indexOf("학교명");
+  const idxStatus = header.indexOf("운영상태");
+  const idxAddr = header.indexOf("소재지도로명주소");
+  const idxLat = header.indexOf("위도");
+  const idxLng = header.indexOf("경도");
+
+  const results: CsvSchool[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i]?.trim();
+    if (!line) continue;
+
+    const cols = line.split(",");
+    const status = cols[idxStatus] ?? "";
+    if (status !== "운영") continue;
+
+    const lat = parseFloat(cols[idxLat] ?? "");
+    const lng = parseFloat(cols[idxLng] ?? "");
+    if (isNaN(lat) || isNaN(lng) || lat === 0) continue;
+
+    const addr = cols[idxAddr] ?? "";
+    if (!addr.includes("오산시") && !addr.includes("화성시")) continue;
+
+    results.push({
+      id: cols[idxId] ?? `school-${i}`,
+      name: cols[idxName] ?? "",
+      address: addr,
+      lat,
+      lng,
+    });
+  }
+
+  return results;
+}
+
 function loadSchools(): School[] {
   if (cachedSchools) return cachedSchools;
 
-  const files = [
-    "경기도 학교 - 오산.json",
-    "경기도 학교 - 운천.json",
-    "경기도 학교 - 동탄.json",
-    "경기도 학교 - 화성.json",
-  ];
-
-  const allRaw: RawSchool[] = [];
-  for (const file of files) {
-    const filePath = join(process.cwd(), "data", file);
-    try {
-      const content = readFileSync(filePath, "utf-8");
-      const data: RawSchool[] = JSON.parse(content);
-      allRaw.push(...data);
-    } catch {
-      // File not found — skip
-    }
-  }
-
+  const raw = loadCsv();
   const seen = new Set<string>();
   const schools: School[] = [];
 
-  for (const raw of allRaw) {
-    if (raw.OPERT_STATE_NM !== "운영") continue;
-
-    const lat = parseFloat(raw.REFINE_WGS84_LAT);
-    const lng = parseFloat(raw.REFINE_WGS84_LOGT);
-    if (isNaN(lat) || isNaN(lng)) continue;
-
-    const addr = raw.REFINE_ROADNM_ADDR ?? "";
-    // Only include 오산시 and 화성시 (동탄) schools
-    if (!addr.includes("오산시") && !addr.includes("화성시")) continue;
-
-    // Deduplicate by school ID
-    if (seen.has(raw.SCHOOL_ID)) continue;
-    seen.add(raw.SCHOOL_ID);
+  for (const r of raw) {
+    if (seen.has(r.id)) continue;
+    seen.add(r.id);
 
     schools.push({
-      id: raw.SCHOOL_ID,
-      name: raw.SCHOOL_NM,
-      address: addr,
-      position: { lat, lng },
+      id: r.id,
+      name: r.name,
+      address: r.address,
+      position: { lat: r.lat, lng: r.lng },
       areaId: "area-osan",
     });
   }
@@ -76,9 +87,7 @@ export function searchSchools(query: string): School[] {
   if (!query) return schools;
   const q = query.toLowerCase();
   return schools.filter(
-    (s) =>
-      s.name.toLowerCase().includes(q) ||
-      s.address.toLowerCase().includes(q),
+    (s) => s.name.toLowerCase().includes(q) || s.address.toLowerCase().includes(q),
   );
 }
 

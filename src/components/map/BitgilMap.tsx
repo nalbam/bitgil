@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
+import type { Layer } from "@deck.gl/core";
+import { ScatterplotLayer, PathLayer } from "@deck.gl/layers";
 import { MAPS_CONFIG } from "@/lib/maps/config";
 import { NIGHT_MAP_STYLE } from "@/lib/maps/night-style";
-import { FacilityGlowMarker } from "@/components/map/FacilityGlowMarker";
+import { DeckGLOverlay } from "@/components/map/DeckGLOverlay";
 import { SchoolMarker } from "@/components/map/SchoolMarker";
-import { RoutePolyline } from "@/components/map/RoutePolyline";
+import {
+  FACILITY_GLOW,
+  ROUTE_COLORS,
+  ROUTE_SELECTED_MULTIPLIER,
+  ROUTE_UNSELECTED_OPACITY,
+  hexToRgba,
+} from "@/lib/maps/glow-config";
 import type { DomainFacility } from "@/domain/entities/facility";
 import type { RouteOption, GeoPoint, School } from "@/lib/maps/types";
 
@@ -32,50 +40,96 @@ function MapContent({
   onRouteSelect,
 }: BitgilMapProps) {
   const map = useMap();
-  const containerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!map) return;
     map.panTo(center);
   }, [map, center]);
 
-  // Update CSS variable on zoom change — no React re-render
-  useEffect(() => {
-    if (!map) return;
+  const layers = useMemo(() => {
+    const glowConfig = FACILITY_GLOW.streetlight;
+    const glowColor = hexToRgba(glowConfig.color, 40);
+    const coreColor = hexToRgba(glowConfig.color, 180);
 
-    const mapDiv = map.getDiv();
-    containerRef.current = mapDiv;
+    const result: Layer[] = [
+      // Streetlight glow layer (larger radius, lower opacity)
+      new ScatterplotLayer({
+        id: "streetlights-glow",
+        data: streetlights,
+        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getFillColor: glowColor,
+        getRadius: 12,
+        radiusMinPixels: 6,
+        radiusMaxPixels: 20,
+        opacity: 0.6,
+        antialiasing: true,
+      }),
 
-    function updateScale() {
-      const z = map!.getZoom() ?? MAPS_CONFIG.defaultZoom;
-      const scale = Math.pow(2, (z - 15) / 2.5);
-      mapDiv.style.setProperty("--glow-scale", String(scale));
+      // Streetlight core layer (smaller radius, higher opacity)
+      new ScatterplotLayer({
+        id: "streetlights-core",
+        data: streetlights,
+        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getFillColor: coreColor,
+        getRadius: 4,
+        radiusMinPixels: 1.5,
+        radiusMaxPixels: 6,
+        opacity: 0.9,
+        antialiasing: true,
+      }),
+    ];
+
+    // Route layers
+    for (const route of routes) {
+      const colors = ROUTE_COLORS[route.safetyLevel];
+      const selected = route.id === selectedRouteId;
+      const opacityMul = selected ? 1 : ROUTE_UNSELECTED_OPACITY;
+      const weightMul = selected ? ROUTE_SELECTED_MULTIPLIER : 1;
+      const path = route.points.map(
+        (p) => [p.position.lng, p.position.lat] as [number, number],
+      );
+
+      // Route glow
+      result.push(
+        new PathLayer<{ path: [number, number][] }>({
+          id: `route-glow-${route.id}`,
+          data: [{ path }],
+          getPath: (d) => d.path,
+          getColor: hexToRgba(colors.stroke, Math.round(colors.glowOpacity * opacityMul * 255)),
+          getWidth: colors.glowWeight * weightMul,
+          widthUnits: "pixels" as const,
+          pickable: true,
+          onClick: () => onRouteSelect(route.id),
+        }),
+      );
+
+      // Route line
+      result.push(
+        new PathLayer<{ path: [number, number][] }>({
+          id: `route-line-${route.id}`,
+          data: [{ path }],
+          getPath: (d) => d.path,
+          getColor: hexToRgba(colors.stroke, Math.round(colors.opacity * opacityMul * 255)),
+          getWidth: colors.weight * weightMul,
+          widthUnits: "pixels" as const,
+          pickable: true,
+          onClick: () => onRouteSelect(route.id),
+        }),
+      );
     }
 
-    updateScale();
-    const listener = map.addListener("zoom_changed", updateScale);
-    return () => listener.remove();
-  }, [map]);
+    return result;
+  }, [streetlights, routes, selectedRouteId, onRouteSelect]);
 
   return (
     <>
+      <DeckGLOverlay layers={layers} />
       {schools.map((s) => (
         <SchoolMarker
           key={s.id}
           school={s}
           selected={selectedSchoolId === s.id}
           onClick={() => onSchoolSelect(s)}
-        />
-      ))}
-      {streetlights.map((f) => (
-        <FacilityGlowMarker key={f.id} facility={f} />
-      ))}
-      {routes.map((r) => (
-        <RoutePolyline
-          key={r.id}
-          route={r}
-          selected={selectedRouteId === r.id}
-          onClick={() => onRouteSelect(r.id)}
         />
       ))}
     </>
