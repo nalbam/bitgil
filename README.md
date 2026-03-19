@@ -54,7 +54,7 @@ src/
 | **SafetyScore** | 0–100 numeric score with per-factor explanations |
 | **RouteSafetyAnalysis** | A collection of route options for a school at a point in time |
 
-**Facility types:** `streetlight` · `cctv` · `police_station` · `crosswalk` · `danger` (danger zone) · `emergency_bell`
+**Facility types:** `streetlight` · `cctv` · `police` · `police_station` · `crosswalk` · `danger` (danger zone) · `emergency_bell`
 
 **Safety levels:** `safe` (≥70) · `moderate` (≥40) · `caution` (<40)
 
