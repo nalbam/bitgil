@@ -25,6 +25,8 @@ interface BitgilMapProps {
   onSchoolSelect: (school: School) => void;
   streetlights: DomainFacility[];
   cctv: DomainFacility[];
+  policeStations: DomainFacility[];
+  dangerZones: DomainFacility[];
   routes: RouteOption[];
   selectedRouteId: string | null;
   onRouteSelect: (routeId: string) => void;
@@ -37,6 +39,8 @@ function MapContent({
   onSchoolSelect,
   streetlights,
   cctv,
+  policeStations,
+  dangerZones,
   routes,
   selectedRouteId,
   onRouteSelect,
@@ -72,6 +76,14 @@ function MapContent({
     const cctvGlow = FACILITY_GLOW.cctv;
     const cctvGlowColor = hexToRgba(cctvGlow.color, 40);
     const cctvCoreColor = hexToRgba(cctvGlow.color, 180);
+
+    const psGlow = FACILITY_GLOW.police_station;
+    const psGlowColor = hexToRgba(psGlow.color, 40);
+    const psCoreColor = hexToRgba(psGlow.color, 180);
+
+    const dzGlow = FACILITY_GLOW.danger;
+    const dzGlowColor = hexToRgba(dzGlow.color, 40);
+    const dzCoreColor = hexToRgba(dzGlow.color, 180);
 
     const result: Layer[] = [
       // Streetlight glow layer (larger radius, lower opacity)
@@ -125,6 +137,58 @@ function MapContent({
         opacity: 0.9,
         antialiasing: true,
       }),
+
+      // Police station glow layer
+      new ScatterplotLayer({
+        id: "police-stations-glow",
+        data: policeStations,
+        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getFillColor: psGlowColor,
+        getRadius: 18,
+        radiusMinPixels: 8,
+        radiusMaxPixels: 24,
+        opacity: 0.6,
+        antialiasing: true,
+      }),
+
+      // Police station core layer
+      new ScatterplotLayer({
+        id: "police-stations-core",
+        data: policeStations,
+        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getFillColor: psCoreColor,
+        getRadius: 6,
+        radiusMinPixels: 3,
+        radiusMaxPixels: 8,
+        opacity: 0.9,
+        antialiasing: true,
+      }),
+
+      // Danger zone glow layer
+      new ScatterplotLayer({
+        id: "danger-zones-glow",
+        data: dangerZones,
+        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getFillColor: dzGlowColor,
+        getRadius: 15,
+        radiusMinPixels: 7,
+        radiusMaxPixels: 22,
+        opacity: 0.6,
+        antialiasing: true,
+      }),
+
+      // Danger zone core layer
+      new ScatterplotLayer({
+        id: "danger-zones-core",
+        data: dangerZones,
+        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getFillColor: dzCoreColor,
+        getRadius: 5,
+        radiusMinPixels: 2.5,
+        radiusMaxPixels: 7,
+        opacity: 0.9,
+        antialiasing: true,
+      }),
     ];
 
     // Route layers
@@ -167,7 +231,7 @@ function MapContent({
     }
 
     return result;
-  }, [streetlights, cctv, routes, selectedRouteId, onRouteSelect]);
+  }, [streetlights, cctv, policeStations, dangerZones, routes, selectedRouteId, onRouteSelect]);
 
   return (
     <>

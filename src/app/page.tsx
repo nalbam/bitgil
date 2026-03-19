@@ -16,6 +16,8 @@ export default function HomePage() {
   const [allSchools, setAllSchools] = useState<School[]>([]);
   const [streetlights, setStreetlights] = useState<DomainFacility[]>([]);
   const [cctv, setCctv] = useState<DomainFacility[]>([]);
+  const [policeStations, setPoliceStations] = useState<DomainFacility[]>([]);
+  const [dangerZones, setDangerZones] = useState<DomainFacility[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const { routes, isLoading, loadSchool } = useSchoolData();
@@ -44,6 +46,24 @@ export default function HomePage() {
       .then((r) => r.json())
       .then((json) => {
         if (json.ok) setCctv(json.data);
+      });
+  }, []);
+
+  // Fetch all police stations once on mount
+  useEffect(() => {
+    fetch("/api/facilities?type=police_station")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok) setPoliceStations(json.data);
+      });
+  }, []);
+
+  // Fetch all danger zones once on mount
+  useEffect(() => {
+    fetch("/api/facilities?type=danger")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok) setDangerZones(json.data);
       });
   }, []);
 
@@ -80,6 +100,8 @@ export default function HomePage() {
             onSchoolSelect={handleSchoolSelect}
             streetlights={streetlights}
             cctv={cctv}
+            policeStations={policeStations}
+            dangerZones={dangerZones}
             routes={routes}
             selectedRouteId={effectiveRouteId}
             onRouteSelect={handleRouteSelect}

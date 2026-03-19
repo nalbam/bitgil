@@ -15,7 +15,7 @@ function loadCsv(): CsvCctv[] {
   if (cached) return cached;
 
   const csvPath = join(process.cwd(), "data", "cctv.csv");
-  const content = readFileSync(csvPath, "utf-8");
+  const content = readFileSync(csvPath, "utf-8").replace(/\r\n/g, "\n");
   const lines = content.split("\n");
   const header = lines[0]!.split(",");
 

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAllStreetlights, getStreetlightsNear } from "@/lib/api/streetlight-csv";
 import { getAllCctv } from "@/lib/api/cctv-csv";
+import { getAllPoliceStations } from "@/lib/api/police-station-csv";
+import { getAllDangerZones } from "@/lib/api/danger-zone-csv";
 import { findAreaById } from "@/data/mock/areas";
 import type { NextRequest } from "next/server";
 
@@ -29,6 +31,16 @@ export async function GET(request: NextRequest) {
 
   if (type === "cctv") {
     const data = getAllCctv();
+    return NextResponse.json({ ok: true, data, total: data.length });
+  }
+
+  if (type === "police_station") {
+    const data = getAllPoliceStations();
+    return NextResponse.json({ ok: true, data, total: data.length });
+  }
+
+  if (type === "danger") {
+    const data = getAllDangerZones();
     return NextResponse.json({ ok: true, data, total: data.length });
   }
 

@@ -16,7 +16,7 @@ function loadCsv(): CsvSchool[] {
   if (cached) return cached;
 
   const csvPath = join(process.cwd(), "data", "schools.csv");
-  const content = readFileSync(csvPath, "utf-8");
+  const content = readFileSync(csvPath, "utf-8").replace(/\r\n/g, "\n");
   const lines = content.split("\n");
   const header = lines[0]!.split(",");
 
