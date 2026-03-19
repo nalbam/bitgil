@@ -18,6 +18,8 @@ export function useSchoolSearch() {
       if (json.ok) {
         setResults(json.data);
       }
+    } catch {
+      setResults([]);
     } finally {
       setIsLoading(false);
     }

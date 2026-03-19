@@ -15,6 +15,9 @@ export function DeckGLOverlay(props: DeckProps) {
     return () => overlay.setMap(null);
   }, [map, overlay]);
 
-  overlay.setProps(props);
+  useEffect(() => {
+    overlay.setProps(props);
+  }, [overlay, props]);
+
   return null;
 }
