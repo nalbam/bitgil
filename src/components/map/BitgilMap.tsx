@@ -153,8 +153,6 @@ export function BitgilMap(props: BitgilMapProps) {
         mapId={MAPS_CONFIG.mapId}
         colorScheme="DARK"
         styles={MAPS_CONFIG.mapId ? undefined : NIGHT_MAP_STYLE}
-        tilt={MAPS_CONFIG.mapId ? 45 : 0}
-        heading={0}
         gestureHandling="greedy"
         disableDefaultUI={true}
         zoomControl={true}
