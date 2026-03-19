@@ -1,0 +1,47 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Node.js 20 사용
+        - nvm use 20
+
+        # Node.js 버전 확인
+        - node --version
+        - npm --version
+
+        # pnpm 설치
+        - npm install -g pnpm@10.14.0
+        - pnpm --version
+
+        # 의존성 설치
+        - pnpm install
+
+        # .env.production 파일 초기화
+        - echo "# Auto-generated environment variables" > .env.production
+
+        # NEXT로 시작하는 환경 변수 추가
+        - env | grep -E '^NEXT' >> .env.production || echo "No NEXT variables found"
+
+    build:
+      commands:
+        # Next.js 빌드
+        - pnpm build
+
+    postBuild:
+      commands:
+        # 빌드 결과 확인
+        - echo "Build completed successfully"
+        - ls -la .next/
+
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+
+  cache:
+    paths:
+      # pnpm 캐시
+      - ~/.pnpm-store/**/*
+      # node_modules
+      - node_modules/**/*
