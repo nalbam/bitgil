@@ -55,9 +55,9 @@ function MapContent({
   const [infoSchoolId, setInfoSchoolId] = useState<string | null>(null);
   const [infoPoliceId, setInfoPoliceId] = useState<string | null>(null);
   const [heatmapVisibility, setHeatmapVisibility] = useState<HeatmapVisibility>({
-    streetlight: false,
-    cctv: false,
-    danger: false,
+    streetlight: true,
+    cctv: true,
+    danger: true,
   });
 
   const handleHeatmapToggle = useCallback((layer: keyof HeatmapVisibility) => {

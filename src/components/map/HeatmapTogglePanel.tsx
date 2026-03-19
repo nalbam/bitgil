@@ -37,15 +37,15 @@ export function HeatmapTogglePanel({ visibility, onToggle }: HeatmapTogglePanelP
               className="flex items-center gap-2 text-sm text-slate-300 transition-opacity hover:opacity-80"
             >
               <span
-                className="inline-block h-4 w-8 rounded-full transition-colors"
+                className="relative inline-block h-4 w-8 rounded-full transition-colors"
                 style={{
                   background: active ? color : "#444",
                 }}
               >
                 <span
-                  className="block h-3 w-3 translate-y-0.5 rounded-full bg-white transition-transform"
+                  className="absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all"
                   style={{
-                    transform: active ? "translate(18px, 2px)" : "translate(2px, 2px)",
+                    left: active ? 18 : 2,
                   }}
                 />
               </span>
