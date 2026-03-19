@@ -8,6 +8,7 @@ import { MAPS_CONFIG } from "@/lib/maps/config";
 import { NIGHT_MAP_STYLE } from "@/lib/maps/night-style";
 import { DeckGLOverlay } from "@/components/map/DeckGLOverlay";
 import { SchoolMarker } from "@/components/map/SchoolMarker";
+import { PoliceMarker } from "@/components/map/PoliceMarker";
 import {
   FACILITY_GLOW,
   ROUTE_COLORS,
@@ -47,6 +48,7 @@ function MapContent({
 }: BitgilMapProps) {
   const map = useMap();
   const [infoSchoolId, setInfoSchoolId] = useState<string | null>(null);
+  const [infoPoliceId, setInfoPoliceId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!map) return;
@@ -56,7 +58,10 @@ function MapContent({
   // Close InfoWindow on map click
   useEffect(() => {
     if (!map) return;
-    const listener = map.addListener("click", () => setInfoSchoolId(null));
+    const listener = map.addListener("click", () => {
+      setInfoSchoolId(null);
+      setInfoPoliceId(null);
+    });
     return () => listener.remove();
   }, [map]);
 
@@ -76,10 +81,6 @@ function MapContent({
     const cctvGlow = FACILITY_GLOW.cctv;
     const cctvGlowColor = hexToRgba(cctvGlow.color, 40);
     const cctvCoreColor = hexToRgba(cctvGlow.color, 180);
-
-    const psGlow = FACILITY_GLOW.police_station;
-    const psGlowColor = hexToRgba(psGlow.color, 40);
-    const psCoreColor = hexToRgba(psGlow.color, 180);
 
     const dzGlow = FACILITY_GLOW.danger;
     const dzGlowColor = hexToRgba(dzGlow.color, 40);
@@ -134,32 +135,6 @@ function MapContent({
         getRadius: 4,
         radiusMinPixels: 1.5,
         radiusMaxPixels: 6,
-        opacity: 0.9,
-        antialiasing: true,
-      }),
-
-      // Police station glow layer
-      new ScatterplotLayer({
-        id: "police-stations-glow",
-        data: policeStations,
-        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
-        getFillColor: psGlowColor,
-        getRadius: 18,
-        radiusMinPixels: 8,
-        radiusMaxPixels: 24,
-        opacity: 0.6,
-        antialiasing: true,
-      }),
-
-      // Police station core layer
-      new ScatterplotLayer({
-        id: "police-stations-core",
-        data: policeStations,
-        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
-        getFillColor: psCoreColor,
-        getRadius: 6,
-        radiusMinPixels: 3,
-        radiusMaxPixels: 8,
         opacity: 0.9,
         antialiasing: true,
       }),
@@ -231,7 +206,7 @@ function MapContent({
     }
 
     return result;
-  }, [streetlights, cctv, policeStations, dangerZones, routes, selectedRouteId, onRouteSelect]);
+  }, [streetlights, cctv, dangerZones, routes, selectedRouteId, onRouteSelect]);
 
   return (
     <>
@@ -244,6 +219,15 @@ function MapContent({
           showInfo={infoSchoolId === s.id}
           onClick={() => handleSchoolClick(s)}
           onCloseInfo={() => setInfoSchoolId(null)}
+        />
+      ))}
+      {policeStations.map((p) => (
+        <PoliceMarker
+          key={p.id}
+          facility={p}
+          showInfo={infoPoliceId === p.id}
+          onClick={() => setInfoPoliceId(p.id)}
+          onCloseInfo={() => setInfoPoliceId(null)}
         />
       ))}
     </>
