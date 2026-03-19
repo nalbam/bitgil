@@ -26,6 +26,7 @@ export interface SchoolMetaItem extends BaseItem {
   address: string;
   lat: number;
   lng: number;
+  areaId: string;
 }
 
 // ─── Area ─────────────────────────────────────────────────────────────────────

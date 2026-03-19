@@ -32,6 +32,22 @@ export function RouteCard({ route, selected, className }: RouteCardProps) {
         <span>{route.distanceKm.toFixed(1)} km</span>
         <span>~{route.estimatedMinutes} min</span>
       </div>
+      {/* Facility count badges */}
+      <div className="mb-2 flex flex-wrap gap-1.5">
+        {Object.entries(
+          route.facilityInfluences.reduce<Record<string, number>>(
+            (acc, fi) => ({ ...acc, [fi.facilityType]: (acc[fi.facilityType] ?? 0) + 1 }),
+            {},
+          ),
+        ).map(([type, count]) => (
+          <span
+            key={type}
+            className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] text-slate-400"
+          >
+            {type} {count}
+          </span>
+        ))}
+      </div>
       {route.explanation && (
         <p className="text-xs leading-relaxed text-slate-500">{route.explanation}</p>
       )}

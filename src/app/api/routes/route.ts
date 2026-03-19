@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { listRouteAnalysesForSchool } from "@/server/repositories/route-analysis-repository";
 import { DEFAULT_SCHOOL } from "@/data/mock/schools";
-import { MOCK_ROUTES } from "@/data/mock/routes";
+import { ROUTES_BY_SCHOOL } from "@/data/mock/routes";
 import { isDynamoDbConfigured } from "@/lib/env";
 import type { NextRequest } from "next/server";
 
@@ -10,15 +10,19 @@ export async function GET(request: NextRequest) {
   const schoolId = searchParams.get("schoolId") ?? DEFAULT_SCHOOL.id;
 
   if (!isDynamoDbConfigured()) {
-    // Return full RouteOption objects from mock data for the demo UI
+    const routes = ROUTES_BY_SCHOOL[schoolId] ?? [];
+    const recommended = routes.reduce(
+      (best, r) => (r.score > (best?.score ?? 0) ? r : best),
+      routes[0],
+    );
     return NextResponse.json({
       ok: true,
       data: {
-        routes: MOCK_ROUTES,
-        recommendedRouteId: "route-safe",
+        routes,
+        recommendedRouteId: recommended?.id ?? null,
         analyzedAt: new Date().toISOString(),
       },
-      total: MOCK_ROUTES.length,
+      total: routes.length,
     });
   }
 

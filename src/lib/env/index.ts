@@ -8,6 +8,7 @@
 
 export const clientEnv = {
   googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "",
+  googleMapsMapId: process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID ?? "",
 } as const;
 
 // ─── Server-only ─────────────────────────────────────────────────────────────
