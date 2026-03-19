@@ -19,11 +19,11 @@ src/
 │   ├── services/          Domain services (e.g. safety scoring)
 │   ├── types/             Domain type re-exports
 │   └── value-objects/     Immutable value helpers
-├── features/landing/      Landing-page feature modules
 ├── lib/
+│   ├── api/               CSV data loaders (schools, streetlights, cctv, police, danger)
 │   ├── dynamodb/          DynamoDB infrastructure (client, schema, keys, types)
 │   ├── env/               Environment variable helpers
-│   ├── maps/              Shared map types
+│   ├── maps/              Map types & visualization config (Google Maps + deck.gl)
 │   └── utils/             Generic utilities
 └── server/
     ├── mappers/           Domain ↔ DynamoDB item converters
@@ -35,11 +35,12 @@ src/
 | Layer | Responsibility |
 |---|---|
 | `domain/` | Business rules, scoring, entity types |
+| `lib/api/` | CSV data loaders for public datasets |
 | `lib/dynamodb/` | AWS SDK wiring, key patterns, item types |
 | `server/mappers/` | Convert domain ↔ DynamoDB items |
 | `server/repositories/` | Query/write DynamoDB; fallback to mock data |
 | `app/api/` | Thin HTTP handlers using repositories |
-| `components/` / `features/` | Render UI; never touch DB details |
+| `components/` | Render UI; never touch DB details |
 
 ---
 
@@ -117,7 +118,8 @@ The app runs with **mock data by default** — no AWS credentials required. When
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Optional | Google Maps API key (for future map integration) |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Optional | Google Maps API key |
+| `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` | Optional | Google Maps custom map ID |
 | `AWS_REGION` | For DB | AWS region (e.g. `ap-northeast-2`) |
 | `AWS_ACCESS_KEY_ID` | For DB | AWS access key |
 | `AWS_SECRET_ACCESS_KEY` | For DB | AWS secret key |
@@ -128,20 +130,17 @@ The app runs with **mock data by default** — no AWS credentials required. When
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/health` | Health check; reports `db: "mock"` or `db: "dynamodb"` |
-| `GET` | `/api/facilities?areaId=` | List facilities for an area |
+| `GET` | `/api/schools?q=` | Search schools by name or address |
+| `GET` | `/api/facilities?type=&areaId=` | List facilities by type and/or area |
 | `GET` | `/api/routes?schoolId=` | List route options for a school |
 
 ---
 
 ## Roadmap
 
-### Step 4 (Next)
 - [ ] DynamoDB table provisioning (CDK or CloudFormation)
 - [ ] Data seeding script to populate the table from mock data
-- [ ] Google Maps integration replacing the SVG map placeholder
 - [ ] Real facility data ingestion pipeline
-
-### Future Steps
 - [ ] Authentication (parent/admin roles)
 - [ ] LLM-powered route explanation generation
 - [ ] Push notifications for route safety alerts

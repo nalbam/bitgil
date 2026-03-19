@@ -35,16 +35,16 @@ src/
 │   ├── repositories/ # DynamoDB queries with mock data fallback
 │   └── mappers/      # Domain ↔ DynamoDB item conversion
 ├── lib/
+│   ├── api/          # CSV data loaders (schools, streetlights, cctv, police, danger)
 │   ├── dynamodb/     # AWS SDK client, key patterns, schema, types
 │   ├── constants/    # Site-wide constants
 │   ├── env/          # Environment variable helpers
-│   ├── maps/         # Map/route domain types
+│   ├── maps/         # Map/route domain types & visualization config
 │   └── utils/        # cn() (clsx + tailwind-merge)
 ├── app/              # Next.js App Router
-│   ├── api/          # REST endpoints (health, facilities, routes)
+│   ├── api/          # REST endpoints (health, schools, facilities, routes)
 │   └── page.tsx      # Landing page
-├── components/       # Reusable UI (layout, map, route, safety, ui)
-├── features/landing/ # Landing page section components
+├── components/       # Reusable UI (layout, map, route, search, ui)
 ├── data/mock/        # Development mock data
 └── hooks/            # Client-side React hooks
 ```
@@ -66,16 +66,18 @@ src/
 
 ## Tech Stack
 
-- **Framework:** Next.js 15 (App Router) + React 19
+- **Framework:** Next.js 16 (App Router) + React 19
 - **Language:** TypeScript (strict mode)
 - **Styling:** Tailwind CSS 4 + PostCSS
+- **Map:** Google Maps + deck.gl (ScatterplotLayer, PathLayer)
 - **Database:** AWS DynamoDB (single-table)
+- **Deployment:** AWS Amplify
 - **Package Manager:** pnpm
 - **Path alias:** `@/*` → `./src/*`
 
 ## Environment Variables
 
-See `.env.example`. Server-only: `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `DYNAMODB_TABLE_NAME`. Client: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (optional).
+See `.env.example`. Server-only: `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `DYNAMODB_TABLE_NAME`. Client: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` (optional).
 
 ## Code Conventions
 
