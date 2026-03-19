@@ -4,15 +4,19 @@ import { useState, useCallback, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { SchoolSearch } from "@/components/search/SchoolSearch";
+import { OriginInput } from "@/components/search/OriginInput";
 import { BitgilMap } from "@/components/map/BitgilMap";
 import { RouteComparisonPanel } from "@/components/route/RouteComparisonPanel";
 import { useSchoolData } from "@/hooks/useSchoolData";
+import { APIProvider } from "@vis.gl/react-google-maps";
+import { MAPS_CONFIG } from "@/lib/maps/config";
 import type { School } from "@/lib/maps/types";
 import type { DomainFacility } from "@/domain/entities/facility";
 
 type CoordPair = [number, number];
 
 const OSAN_CENTER = { lat: 37.15, lng: 127.068 };
+const DIRECTIONS_ENABLED = process.env.NEXT_PUBLIC_DIRECTIONS_ENABLED === "true";
 
 export default function HomePage() {
   const [allSchools, setAllSchools] = useState<School[]>([]);
@@ -22,7 +26,8 @@ export default function HomePage() {
   const [dangerZones, setDangerZones] = useState<CoordPair[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
-  const { routes, isLoading, loadSchool } = useSchoolData();
+  const { routes, isLoading, origin, setOrigin, loadSchool, loadDirections } = useSchoolData();
+  const [isReversed, setIsReversed] = useState(false);
 
   // Load all schools on mount
   useEffect(() => {
@@ -73,10 +78,23 @@ export default function HomePage() {
     (school: School) => {
       setSelectedSchool(school);
       setSelectedRouteId(null);
+      setIsReversed(false);
       loadSchool(school);
     },
     [loadSchool],
   );
+
+  // Load directions when origin changes
+  useEffect(() => {
+    if (!selectedSchool || !origin) return;
+    if (isReversed) {
+      // School → Home: origin is school, destination is home
+      const homeAsSchool = { ...selectedSchool, position: origin };
+      loadDirections(homeAsSchool, selectedSchool.position);
+    } else {
+      loadDirections(selectedSchool, origin);
+    }
+  }, [selectedSchool, origin, isReversed, loadDirections]);
 
   const handleRouteSelect = useCallback((routeId: string) => {
     setSelectedRouteId(routeId);
@@ -90,7 +108,24 @@ export default function HomePage() {
       <Header />
 
       <div className="border-b border-white/5 px-4 py-3">
-        <SchoolSearch onSelect={handleSchoolSelect} selectedSchool={selectedSchool} />
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-2">
+          <SchoolSearch onSelect={handleSchoolSelect} selectedSchool={selectedSchool} />
+          {DIRECTIONS_ENABLED && selectedSchool && MAPS_CONFIG.apiKey && (
+            <APIProvider apiKey={MAPS_CONFIG.apiKey} libraries={["places"]}>
+              <div className="flex items-center gap-2">
+                <OriginInput origin={origin} onOriginChange={setOrigin} />
+                <button
+                  type="button"
+                  onClick={() => setIsReversed((prev) => !prev)}
+                  className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-3 py-3 text-xs text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+                  title={isReversed ? "하교 (학교→집)" : "등교 (집→학교)"}
+                >
+                  {isReversed ? "하교" : "등교"}
+                </button>
+              </div>
+            </APIProvider>
+          )}
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
@@ -107,6 +142,8 @@ export default function HomePage() {
             routes={routes}
             selectedRouteId={effectiveRouteId}
             onRouteSelect={handleRouteSelect}
+            origin={origin}
+            onOriginChange={setOrigin}
           />
         </div>
 

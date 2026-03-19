@@ -45,3 +45,7 @@ export function isDynamoDbConfigured(): boolean {
       process.env.DYNAMODB_TABLE_NAME,
   );
 }
+
+export function isDirectionsConfigured(): boolean {
+  return Boolean(process.env.NEXT_GOOGLE_DIRECTIONS_API_KEY);
+}

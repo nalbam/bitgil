@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
+import { AdvancedMarker, APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import type { Layer } from "@deck.gl/core";
 import { ScatterplotLayer, PathLayer } from "@deck.gl/layers";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
@@ -36,6 +36,8 @@ interface BitgilMapProps {
   routes: RouteOption[];
   selectedRouteId: string | null;
   onRouteSelect: (routeId: string) => void;
+  origin: GeoPoint | null;
+  onOriginChange: (origin: GeoPoint | null) => void;
 }
 
 function MapContent({
@@ -50,6 +52,8 @@ function MapContent({
   routes,
   selectedRouteId,
   onRouteSelect,
+  origin,
+  onOriginChange,
 }: BitgilMapProps) {
   const map = useMap();
   const [infoSchoolId, setInfoSchoolId] = useState<string | null>(null);
@@ -69,15 +73,18 @@ function MapContent({
     map.panTo(center);
   }, [map, center]);
 
-  // Close InfoWindow on map click
+  // Close InfoWindow on map click + set origin
   useEffect(() => {
     if (!map) return;
-    const listener = map.addListener("click", () => {
+    const listener = map.addListener("click", (e: google.maps.MapMouseEvent) => {
       setInfoSchoolId(null);
       setInfoPoliceId(null);
+      if (selectedSchoolId && e.latLng) {
+        onOriginChange({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+      }
     });
     return () => listener.remove();
-  }, [map]);
+  }, [map, selectedSchoolId, onOriginChange]);
 
   const handleSchoolClick = useCallback(
     (school: School) => {
@@ -299,6 +306,13 @@ function MapContent({
           onCloseInfo={() => setInfoPoliceId(null)}
         />
       ))}
+      {origin && (
+        <AdvancedMarker position={origin}>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-blue-500 text-sm font-bold text-white shadow-lg">
+            출
+          </div>
+        </AdvancedMarker>
+      )}
     </>
   );
 }
