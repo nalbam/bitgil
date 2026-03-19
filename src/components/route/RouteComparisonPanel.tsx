@@ -1,18 +1,21 @@
 "use client";
 
-import { useState } from "react";
 import { RouteCard } from "@/components/ui/RouteCard";
+import { SafetyBreakdown } from "@/components/route/SafetyBreakdown";
 import type { RouteOption } from "@/lib/maps/types";
 
 interface RouteComparisonPanelProps {
   routes: RouteOption[];
-  initialRouteId?: string;
+  selectedRouteId: string | null;
+  onRouteSelect: (routeId: string) => void;
 }
 
-export function RouteComparisonPanel({ routes, initialRouteId }: RouteComparisonPanelProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(
-    initialRouteId ?? routes[0]?.id ?? null,
-  );
+export function RouteComparisonPanel({
+  routes,
+  selectedRouteId,
+  onRouteSelect,
+}: RouteComparisonPanelProps) {
+  const selectedRoute = routes.find((r) => r.id === selectedRouteId);
 
   return (
     <div className="space-y-3">
@@ -20,11 +23,18 @@ export function RouteComparisonPanel({ routes, initialRouteId }: RouteComparison
         <button
           key={route.id}
           className="w-full text-left"
-          onClick={() => setSelectedId(route.id)}
+          onClick={() => onRouteSelect(route.id)}
         >
-          <RouteCard route={route} selected={selectedId === route.id} />
+          <RouteCard route={route} selected={selectedRouteId === route.id} />
         </button>
       ))}
+      {selectedRoute && (
+        <SafetyBreakdown
+          factors={selectedRoute.safetyDetails.factors}
+          score={selectedRoute.safetyDetails.score}
+          level={selectedRoute.safetyDetails.level}
+        />
+      )}
     </div>
   );
 }

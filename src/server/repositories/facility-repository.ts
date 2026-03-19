@@ -8,11 +8,12 @@ import {
 } from "@/server/mappers/facility-mapper";
 import type { DomainFacility } from "@/domain/entities/facility";
 import { isDynamoDbConfigured } from "@/lib/env";
-import { MOCK_FACILITIES } from "@/data/mock/facilities";
+import { findFacilitiesByArea, MOCK_FACILITIES } from "@/data/mock/facilities";
+import { findSchoolById } from "@/data/mock/schools";
 
 export async function listFacilitiesByArea(areaId: string): Promise<DomainFacility[]> {
   if (!isDynamoDbConfigured()) {
-    return MOCK_FACILITIES;
+    return findFacilitiesByArea(areaId);
   }
 
   const client = getDynamoDbClient();
@@ -35,7 +36,7 @@ export async function listFacilitiesByTypeInArea(
   facilityType: string,
 ): Promise<DomainFacility[]> {
   if (!isDynamoDbConfigured()) {
-    return MOCK_FACILITIES.filter((f) => f.type === facilityType);
+    return findFacilitiesByArea(areaId).filter((f) => f.type === facilityType);
   }
 
   const client = getDynamoDbClient();
@@ -55,7 +56,9 @@ export async function listFacilitiesByTypeInArea(
 
 export async function listFacilitiesForSchool(schoolId: string): Promise<DomainFacility[]> {
   if (!isDynamoDbConfigured()) {
-    return MOCK_FACILITIES;
+    const school = findSchoolById(schoolId);
+    if (!school) return [];
+    return findFacilitiesByArea(school.areaId);
   }
 
   const client = getDynamoDbClient();
