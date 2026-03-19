@@ -10,7 +10,7 @@ interface SchoolSearchProps {
 }
 
 export function SchoolSearch({ onSelect, selectedSchool }: SchoolSearchProps) {
-  const { query, setQuery, results, isComposing } = useSchoolSearch();
+  const { query, setQuery, results, isComposingRef } = useSchoolSearch();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -41,10 +41,10 @@ export function SchoolSearch({ onSelect, selectedSchool }: SchoolSearchProps) {
         }}
         onFocus={() => setIsOpen(true)}
         onCompositionStart={() => {
-          isComposing.current = true;
+          isComposingRef.current = true;
         }}
         onCompositionEnd={(e) => {
-          isComposing.current = false;
+          isComposingRef.current = false;
           setQuery(e.currentTarget.value);
         }}
         onKeyDown={(e) => {

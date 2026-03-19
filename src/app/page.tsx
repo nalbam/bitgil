@@ -18,7 +18,7 @@ export default function HomePage() {
   const [cctv, setCctv] = useState<DomainFacility[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
-  const { routes, isLoading } = useSchoolData(selectedSchool);
+  const { routes, isLoading, loadSchool } = useSchoolData();
 
   // Load all schools on mount
   useEffect(() => {
@@ -47,10 +47,14 @@ export default function HomePage() {
       });
   }, []);
 
-  const handleSchoolSelect = useCallback((school: School) => {
-    setSelectedSchool(school);
-    setSelectedRouteId(null);
-  }, []);
+  const handleSchoolSelect = useCallback(
+    (school: School) => {
+      setSelectedSchool(school);
+      setSelectedRouteId(null);
+      loadSchool(school);
+    },
+    [loadSchool],
+  );
 
   const handleRouteSelect = useCallback((routeId: string) => {
     setSelectedRouteId(routeId);

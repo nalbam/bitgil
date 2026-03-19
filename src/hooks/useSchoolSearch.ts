@@ -7,7 +7,7 @@ export function useSchoolSearch() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<School[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const isComposing = useRef(false);
+  const isComposingRef = useRef(false);
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const search = useCallback(async (q: string) => {
@@ -24,7 +24,7 @@ export function useSchoolSearch() {
   }, []);
 
   useEffect(() => {
-    if (isComposing.current) return;
+    if (isComposingRef.current) return;
     clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
       search(query);
@@ -32,5 +32,5 @@ export function useSchoolSearch() {
     return () => clearTimeout(debounceTimer.current);
   }, [query, search]);
 
-  return { query, setQuery, results, isLoading, isComposing };
+  return { query, setQuery, results, isLoading, isComposingRef };
 }
