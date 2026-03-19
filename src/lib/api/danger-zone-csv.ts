@@ -17,6 +17,12 @@ function loadCsv(): CsvDangerZone[] {
   const csvPath = join(process.cwd(), "data", "danger-zones.csv");
   const content = readFileSync(csvPath, "utf-8").replace(/\r\n/g, "\n");
   const lines = content.split("\n");
+  const header = lines[0]!.split(",");
+
+  const idxType = header.indexOf("사고유형");
+  const idxLocation = header.indexOf("사고위치(지번)");
+  const idxLat = header.indexOf("정제WGS84위도");
+  const idxLng = header.indexOf("정제WGS84경도");
 
   const results: CsvDangerZone[] = [];
 
@@ -24,27 +30,15 @@ function loadCsv(): CsvDangerZone[] {
     const line = lines[i]?.trim();
     if (!line) continue;
 
-    // Filter: only 오산 or 화성 (check entire line, not just one column)
-    if (!line.includes("오산") && !line.includes("화성")) continue;
+    const cols = line.replace(/"/g, "").split(",");
 
-    // Lat/lng are always the last two comma-separated values (no quotes)
-    // Use reverse parsing to handle quoted fields with commas
-    const lastComma = line.lastIndexOf(",");
-    const secondLastComma = line.lastIndexOf(",", lastComma - 1);
-
-    const lng = parseFloat(line.substring(lastComma + 1));
-    const lat = parseFloat(line.substring(secondLastComma + 1, lastComma));
+    const lat = parseFloat(cols[idxLat] ?? "");
+    const lng = parseFloat(cols[idxLng] ?? "");
     if (isNaN(lat) || isNaN(lng) || lat === 0) continue;
 
-    // Extract accident type (1st column) and location (2nd column)
-    const firstComma = line.indexOf(",");
-    const accidentType = line.substring(0, firstComma);
-    const secondComma = line.indexOf(",", firstComma + 1);
-    const location = line.substring(firstComma + 1, secondComma).replace(/"/g, "");
-
     results.push({
-      type: accidentType,
-      location,
+      type: cols[idxType] ?? "",
+      location: cols[idxLocation] ?? "",
       lat,
       lng,
     });
@@ -65,7 +59,7 @@ function toDomainFacility(d: CsvDangerZone, index: number): DomainFacility {
 }
 
 /**
- * Get all danger zones from the CSV dataset (filtered to 오산시/화성시).
+ * Get all danger zones from the CSV dataset (pre-filtered to 오산시/화성시).
  */
 export function getAllDangerZones(): DomainFacility[] {
   return loadCsv().map(toDomainFacility);

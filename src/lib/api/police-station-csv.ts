@@ -19,7 +19,6 @@ function loadCsv(): CsvPoliceStation[] {
   const lines = content.split("\n");
   const header = lines[0]!.split(",");
 
-  const idxCity = header.indexOf("시군명");
   const idxName = header.indexOf("관서명");
   const idxAddress = header.indexOf("소재지도로명주소");
   const idxLat = header.indexOf("WGS84위도");
@@ -32,10 +31,6 @@ function loadCsv(): CsvPoliceStation[] {
     if (!line) continue;
 
     const cols = line.replace(/"/g, "").split(",");
-    const city = cols[idxCity] ?? "";
-
-    // Filter: only 오산시 or 화성시
-    if (!city.includes("오산") && !city.includes("화성")) continue;
 
     const lat = parseFloat(cols[idxLat] ?? "");
     const lng = parseFloat(cols[idxLng] ?? "");
@@ -64,7 +59,7 @@ function toDomainFacility(p: CsvPoliceStation, index: number): DomainFacility {
 }
 
 /**
- * Get all police stations from the CSV dataset (filtered to 오산시/화성시).
+ * Get all police stations from the CSV dataset (pre-filtered to 오산시/화성시).
  */
 export function getAllPoliceStations(): DomainFacility[] {
   return loadCsv().map(toDomainFacility);

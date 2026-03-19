@@ -31,17 +31,13 @@ function loadCsv(): CsvCctv[] {
     if (!line) continue;
 
     const cols = line.replace(/"/g, "").split(",");
-    const address = cols[idxAddress] ?? "";
-
-    // Filter: only 오산시 or 화성시
-    if (!address.includes("오산시") && !address.includes("화성시")) continue;
 
     const lat = parseFloat(cols[idxLat] ?? "");
     const lng = parseFloat(cols[idxLng] ?? "");
     if (isNaN(lat) || isNaN(lng) || lat === 0) continue;
 
     results.push({
-      address,
+      address: cols[idxAddress] ?? "",
       agency: cols[idxAgency] ?? "",
       lat,
       lng,
@@ -63,7 +59,7 @@ function toDomainFacility(c: CsvCctv, index: number): DomainFacility {
 }
 
 /**
- * Get all CCTV facilities from the CSV dataset (filtered to 오산시/화성시).
+ * Get all CCTV facilities from the CSV dataset (pre-filtered to 오산시/화성시).
  */
 export function getAllCctv(): DomainFacility[] {
   return loadCsv().map(toDomainFacility);

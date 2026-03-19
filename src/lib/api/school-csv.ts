@@ -22,7 +22,6 @@ function loadCsv(): CsvSchool[] {
 
   const idxId = header.indexOf("학교ID");
   const idxName = header.indexOf("학교명");
-  const idxStatus = header.indexOf("운영상태");
   const idxAddr = header.indexOf("소재지도로명주소");
   const idxLat = header.indexOf("위도");
   const idxLng = header.indexOf("경도");
@@ -36,19 +35,10 @@ function loadCsv(): CsvSchool[] {
 
     const cols = line.split(",");
 
-    // Filter: only 운영 status
-    const status = cols[idxStatus] ?? "";
-    if (status !== "운영") continue;
-
-    // Filter: only 오산시 or 화성시
-    const addr = cols[idxAddr] ?? "";
-    if (!addr.includes("오산시") && !addr.includes("화성시")) continue;
-
     const lat = parseFloat(cols[idxLat] ?? "");
     const lng = parseFloat(cols[idxLng] ?? "");
     if (isNaN(lat) || isNaN(lng) || lat === 0) continue;
 
-    // Deduplicate by id
     const id = cols[idxId] ?? `school-${i}`;
     if (seen.has(id)) continue;
     seen.add(id);
@@ -56,7 +46,7 @@ function loadCsv(): CsvSchool[] {
     results.push({
       id,
       name: cols[idxName] ?? "",
-      address: addr,
+      address: cols[idxAddr] ?? "",
       lat,
       lng,
     });
@@ -77,7 +67,7 @@ function toSchool(s: CsvSchool): School {
 }
 
 /**
- * Get all schools from the CSV dataset (filtered to 오산시/화성시, 운영 status).
+ * Get all schools from the CSV dataset (pre-filtered to 오산시/화성시, 운영 status).
  */
 export function getAllSchools(): School[] {
   return loadCsv().map(toSchool);
