@@ -15,7 +15,7 @@ let cached: CsvStreetlight[] | null = null;
 function loadCsv(): CsvStreetlight[] {
   if (cached) return cached;
 
-  const csvPath = join(process.cwd(), "data", "경기도 화성시 가로등 현황.csv");
+  const csvPath = join(process.cwd(), "data", "streetlights.csv");
   const content = readFileSync(csvPath, "utf-8");
   const lines = content.split("\n");
   const header = lines[0]!.split(",");

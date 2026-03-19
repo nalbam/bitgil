@@ -15,6 +15,7 @@ const OSAN_CENTER = { lat: 37.15, lng: 127.068 };
 export default function HomePage() {
   const [allSchools, setAllSchools] = useState<School[]>([]);
   const [streetlights, setStreetlights] = useState<DomainFacility[]>([]);
+  const [cctv, setCctv] = useState<DomainFacility[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const { routes, isLoading } = useSchoolData(selectedSchool);
@@ -34,6 +35,15 @@ export default function HomePage() {
       .then((r) => r.json())
       .then((json) => {
         if (json.ok) setStreetlights(json.data);
+      });
+  }, []);
+
+  // Fetch all CCTV once on mount
+  useEffect(() => {
+    fetch("/api/facilities?type=cctv")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok) setCctv(json.data);
       });
   }, []);
 
@@ -65,6 +75,7 @@ export default function HomePage() {
             selectedSchoolId={selectedSchool?.id ?? null}
             onSchoolSelect={handleSchoolSelect}
             streetlights={streetlights}
+            cctv={cctv}
             routes={routes}
             selectedRouteId={effectiveRouteId}
             onRouteSelect={handleRouteSelect}

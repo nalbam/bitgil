@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import type { Layer } from "@deck.gl/core";
 import { ScatterplotLayer, PathLayer } from "@deck.gl/layers";
@@ -24,6 +24,7 @@ interface BitgilMapProps {
   selectedSchoolId: string | null;
   onSchoolSelect: (school: School) => void;
   streetlights: DomainFacility[];
+  cctv: DomainFacility[];
   routes: RouteOption[];
   selectedRouteId: string | null;
   onRouteSelect: (routeId: string) => void;
@@ -35,21 +36,42 @@ function MapContent({
   selectedSchoolId,
   onSchoolSelect,
   streetlights,
+  cctv,
   routes,
   selectedRouteId,
   onRouteSelect,
 }: BitgilMapProps) {
   const map = useMap();
+  const [infoSchoolId, setInfoSchoolId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!map) return;
     map.panTo(center);
   }, [map, center]);
 
+  // Close InfoWindow on map click
+  useEffect(() => {
+    if (!map) return;
+    const listener = map.addListener("click", () => setInfoSchoolId(null));
+    return () => listener.remove();
+  }, [map]);
+
+  const handleSchoolClick = useCallback(
+    (school: School) => {
+      onSchoolSelect(school);
+      setInfoSchoolId(school.id);
+    },
+    [onSchoolSelect],
+  );
+
   const layers = useMemo(() => {
-    const glowConfig = FACILITY_GLOW.streetlight;
-    const glowColor = hexToRgba(glowConfig.color, 40);
-    const coreColor = hexToRgba(glowConfig.color, 180);
+    const slGlow = FACILITY_GLOW.streetlight;
+    const slGlowColor = hexToRgba(slGlow.color, 40);
+    const slCoreColor = hexToRgba(slGlow.color, 180);
+
+    const cctvGlow = FACILITY_GLOW.cctv;
+    const cctvGlowColor = hexToRgba(cctvGlow.color, 40);
+    const cctvCoreColor = hexToRgba(cctvGlow.color, 180);
 
     const result: Layer[] = [
       // Streetlight glow layer (larger radius, lower opacity)
@@ -57,7 +79,7 @@ function MapContent({
         id: "streetlights-glow",
         data: streetlights,
         getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
-        getFillColor: glowColor,
+        getFillColor: slGlowColor,
         getRadius: 12,
         radiusMinPixels: 6,
         radiusMaxPixels: 20,
@@ -70,7 +92,33 @@ function MapContent({
         id: "streetlights-core",
         data: streetlights,
         getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
-        getFillColor: coreColor,
+        getFillColor: slCoreColor,
+        getRadius: 4,
+        radiusMinPixels: 1.5,
+        radiusMaxPixels: 6,
+        opacity: 0.9,
+        antialiasing: true,
+      }),
+
+      // CCTV glow layer
+      new ScatterplotLayer({
+        id: "cctv-glow",
+        data: cctv,
+        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getFillColor: cctvGlowColor,
+        getRadius: 12,
+        radiusMinPixels: 6,
+        radiusMaxPixels: 20,
+        opacity: 0.6,
+        antialiasing: true,
+      }),
+
+      // CCTV core layer
+      new ScatterplotLayer({
+        id: "cctv-core",
+        data: cctv,
+        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getFillColor: cctvCoreColor,
         getRadius: 4,
         radiusMinPixels: 1.5,
         radiusMaxPixels: 6,
@@ -119,7 +167,7 @@ function MapContent({
     }
 
     return result;
-  }, [streetlights, routes, selectedRouteId, onRouteSelect]);
+  }, [streetlights, cctv, routes, selectedRouteId, onRouteSelect]);
 
   return (
     <>
@@ -129,7 +177,9 @@ function MapContent({
           key={s.id}
           school={s}
           selected={selectedSchoolId === s.id}
-          onClick={() => onSchoolSelect(s)}
+          showInfo={infoSchoolId === s.id}
+          onClick={() => handleSchoolClick(s)}
+          onCloseInfo={() => setInfoSchoolId(null)}
         />
       ))}
     </>

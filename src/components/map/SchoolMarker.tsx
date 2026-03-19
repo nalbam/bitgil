@@ -5,28 +5,25 @@ import {
   InfoWindow,
   useAdvancedMarkerRef,
 } from "@vis.gl/react-google-maps";
-import { useState } from "react";
 import type { School } from "@/lib/maps/types";
 
 interface SchoolMarkerProps {
   school: School;
   selected: boolean;
+  showInfo: boolean;
   onClick: () => void;
+  onCloseInfo: () => void;
 }
 
-export function SchoolMarker({ school, selected, onClick }: SchoolMarkerProps) {
+export function SchoolMarker({ school, selected, showInfo, onClick, onCloseInfo }: SchoolMarkerProps) {
   const [markerRef, marker] = useAdvancedMarkerRef();
-  const [showInfo, setShowInfo] = useState(false);
 
   return (
     <>
       <AdvancedMarker
         ref={markerRef}
         position={school.position}
-        onClick={() => {
-          onClick();
-          setShowInfo(true);
-        }}
+        onClick={onClick}
       >
         <div
           style={{
@@ -42,7 +39,7 @@ export function SchoolMarker({ school, selected, onClick }: SchoolMarkerProps) {
         </div>
       </AdvancedMarker>
       {showInfo && marker && (
-        <InfoWindow anchor={marker} onCloseClick={() => setShowInfo(false)}>
+        <InfoWindow anchor={marker} onCloseClick={onCloseInfo}>
           <div className="p-1 text-sm text-gray-900">
             <p className="font-semibold">{school.name}</p>
             <p className="text-xs text-gray-600">{school.address}</p>
