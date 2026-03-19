@@ -1,22 +1,16 @@
 import { NextResponse } from "next/server";
-import { MOCK_SCHOOLS } from "@/data/mock/schools";
+import { searchSchools } from "@/lib/api/school-data";
 import type { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
-  const query = searchParams.get("q")?.toLowerCase() ?? "";
+  const query = searchParams.get("q") ?? "";
 
-  const filtered = query
-    ? MOCK_SCHOOLS.filter(
-        (s) =>
-          s.name.toLowerCase().includes(query) ||
-          s.address.toLowerCase().includes(query),
-      )
-    : MOCK_SCHOOLS;
+  const schools = searchSchools(query);
 
   return NextResponse.json({
     ok: true,
-    data: filtered,
-    total: filtered.length,
+    data: schools,
+    total: schools.length,
   });
 }

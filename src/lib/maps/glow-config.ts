@@ -8,13 +8,13 @@ export interface GlowStyle {
 }
 
 export const FACILITY_GLOW: Record<ExtendedFacilityType, GlowStyle> = {
-  streetlight: { color: "#FFD700", radiusPx: 120, iconSize: 10, label: "가로등" },
-  cctv: { color: "#4FC3F7", radiusPx: 80, iconSize: 8, label: "CCTV" },
-  police: { color: "#FFFFFF", radiusPx: 150, iconSize: 14, label: "경찰" },
-  police_station: { color: "#FFFFFF", radiusPx: 150, iconSize: 14, label: "파출소" },
-  crosswalk: { color: "#FFF9C4", radiusPx: 100, iconSize: 8, label: "횡단보도" },
-  danger: { color: "#B71C1C", radiusPx: 90, iconSize: 12, label: "위험구간" },
-  emergency_bell: { color: "#FF9800", radiusPx: 70, iconSize: 8, label: "비상벨" },
+  streetlight: { color: "#FFD700", radiusPx: 40, iconSize: 4, label: "가로등" },
+  cctv: { color: "#4FC3F7", radiusPx: 30, iconSize: 4, label: "CCTV" },
+  police: { color: "#FFFFFF", radiusPx: 50, iconSize: 6, label: "경찰" },
+  police_station: { color: "#FFFFFF", radiusPx: 50, iconSize: 6, label: "파출소" },
+  crosswalk: { color: "#FFF9C4", radiusPx: 35, iconSize: 4, label: "횡단보도" },
+  danger: { color: "#B71C1C", radiusPx: 35, iconSize: 5, label: "위험구간" },
+  emergency_bell: { color: "#FF9800", radiusPx: 28, iconSize: 4, label: "비상벨" },
 };
 
 export const ROUTE_COLORS: Record<

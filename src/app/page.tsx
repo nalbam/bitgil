@@ -8,50 +8,30 @@ import { BitgilMap } from "@/components/map/BitgilMap";
 import { RouteComparisonPanel } from "@/components/route/RouteComparisonPanel";
 import { useSchoolData } from "@/hooks/useSchoolData";
 import type { School } from "@/lib/maps/types";
+import type { DomainFacility } from "@/domain/entities/facility";
 
-function findNearestSchool(lat: number, lng: number, schools: School[]): School | null {
-  if (schools.length === 0) return null;
-  let nearest = schools[0]!;
-  let minDist = Infinity;
-  for (const s of schools) {
-    const d = (s.position.lat - lat) ** 2 + (s.position.lng - lng) ** 2;
-    if (d < minDist) {
-      minDist = d;
-      nearest = s;
-    }
-  }
-  return nearest;
-}
+// Osan city center
+const OSAN_CENTER = { lat: 37.1500, lng: 127.0680 };
 
 export default function HomePage() {
+  const [allSchools, setAllSchools] = useState<School[]>([]);
+  const [allStreetlights, setAllStreetlights] = useState<DomainFacility[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
-  const { routes, facilities, isLoading } = useSchoolData(selectedSchool);
+  const { routes, isLoading } = useSchoolData(selectedSchool);
 
-  // Auto-select nearest school on page load
+  // Load all schools and streetlights on mount
   useEffect(() => {
-    async function autoSelect() {
-      const res = await fetch("/api/schools");
-      const json = await res.json();
-      if (!json.ok || !json.data?.length) return;
-      const schools: School[] = json.data;
-
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const nearest = findNearestSchool(pos.coords.latitude, pos.coords.longitude, schools);
-            if (nearest) setSelectedSchool(nearest);
-          },
-          () => {
-            // Geolocation denied — select first school as default
-            setSelectedSchool(schools[0]!);
-          },
-        );
-      } else {
-        setSelectedSchool(schools[0]!);
-      }
-    }
-    autoSelect();
+    fetch("/api/schools")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok) setAllSchools(json.data);
+      });
+    fetch("/api/facilities?areaId=area-osan&type=streetlight")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.ok) setAllStreetlights(json.data);
+      });
   }, []);
 
   const handleSchoolSelect = useCallback((school: School) => {
@@ -64,6 +44,7 @@ export default function HomePage() {
   }, []);
 
   const effectiveRouteId = selectedRouteId ?? routes[0]?.id ?? null;
+  const mapCenter = selectedSchool?.position ?? OSAN_CENTER;
 
   return (
     <div className="flex h-screen flex-col bg-[#0a0f1e] text-slate-100">
@@ -76,24 +57,18 @@ export default function HomePage() {
 
       {/* Main content: map + panel */}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        {/* Map */}
+        {/* Map — always visible with Osan overview */}
         <div className="relative h-[50vh] lg:h-auto lg:flex-[2]">
-          {selectedSchool ? (
-            <BitgilMap
-              center={selectedSchool.position}
-              facilities={facilities}
-              routes={routes}
-              selectedRouteId={effectiveRouteId}
-              onRouteSelect={handleRouteSelect}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-slate-500">
-              <div className="text-center">
-                <p className="text-lg font-medium">학교를 검색하세요</p>
-                <p className="mt-1 text-sm">안전한 통학로를 찾아드립니다</p>
-              </div>
-            </div>
-          )}
+          <BitgilMap
+            center={mapCenter}
+            schools={allSchools}
+            selectedSchoolId={selectedSchool?.id ?? null}
+            onSchoolSelect={handleSchoolSelect}
+            streetlights={allStreetlights}
+            routes={routes}
+            selectedRouteId={effectiveRouteId}
+            onRouteSelect={handleRouteSelect}
+          />
           {isLoading && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#0a0f1e]/60">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
@@ -115,7 +90,11 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="flex h-full items-center justify-center text-slate-500">
-              <p className="text-sm">학교를 선택하면 경로가 표시됩니다</p>
+              <div className="text-center">
+                <p className="text-lg">🏫</p>
+                <p className="mt-2 text-sm">지도에서 학교를 선택하세요</p>
+                <p className="mt-1 text-xs text-slate-600">또는 위 검색창에서 학교를 검색하세요</p>
+              </div>
             </div>
           )}
         </div>

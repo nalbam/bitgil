@@ -26,47 +26,29 @@ export function FacilityGlowMarker({ facility }: FacilityGlowMarkerProps) {
         position={facility.position}
         onClick={() => setShowInfo(true)}
       >
-        {/* Outer ambient light — large soft glow that "lights up" the street */}
         <div
+          className="glow-marker"
           style={{
-            position: "relative",
             width: glow.radiusPx,
             height: glow.radiusPx,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
           }}
         >
-          {/* Layer 1: Wide ambient glow */}
+          {/* Ambient glow */}
           <div
+            className="glow-ambient"
             style={{
-              position: "absolute",
-              inset: 0,
-              borderRadius: "50%",
-              background: `radial-gradient(circle, ${glow.color}30 0%, ${glow.color}15 30%, ${glow.color}05 60%, transparent 80%)`,
+              background: `radial-gradient(circle, ${glow.color}30 0%, ${glow.color}10 40%, transparent 70%)`,
               animation: isDanger ? undefined : "glow-breathe 3s ease-in-out infinite",
             }}
           />
-          {/* Layer 2: Inner bright core */}
+          {/* Center light source */}
           <div
+            className="glow-center"
             style={{
-              position: "absolute",
-              width: glow.radiusPx * 0.4,
-              height: glow.radiusPx * 0.4,
-              borderRadius: "50%",
-              background: `radial-gradient(circle, ${glow.color}90 0%, ${glow.color}40 50%, transparent 100%)`,
-            }}
-          />
-          {/* Layer 3: Center point — the actual light source */}
-          <div
-            style={{
-              position: "relative",
               width: glow.iconSize,
               height: glow.iconSize,
-              borderRadius: "50%",
               backgroundColor: glow.color,
-              boxShadow: `0 0 ${glow.iconSize * 2}px ${glow.iconSize}px ${glow.color}80, 0 0 ${glow.iconSize * 4}px ${glow.iconSize * 2}px ${glow.color}40`,
-              zIndex: 1,
+              boxShadow: `0 0 ${glow.iconSize * 2}px ${glow.color}80`,
             }}
           />
         </div>

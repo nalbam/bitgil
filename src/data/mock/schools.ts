@@ -1,11 +1,62 @@
 import type { School } from "@/lib/maps/types";
 
 export const MOCK_SCHOOLS: School[] = [
-  { id: "school-1", name: "마포고등학교", address: "서울특별시 마포구 마포대로 123", position: { lat: 37.5545, lng: 126.9231 }, areaId: "area-mapo" },
-  { id: "school-gangnam", name: "강남중학교", address: "서울특별시 강남구 테헤란로 45", position: { lat: 37.4979, lng: 127.0276 }, areaId: "area-gangnam" },
-  { id: "school-jongno", name: "종로초등학교", address: "서울특별시 종로구 종로 67", position: { lat: 37.5729, lng: 126.9794 }, areaId: "area-jongno" },
-  { id: "school-songpa", name: "송파고등학교", address: "서울특별시 송파구 올림픽로 89", position: { lat: 37.5145, lng: 127.1066 }, areaId: "area-songpa" },
-  { id: "school-yeongdeungpo", name: "영등포중학교", address: "서울특별시 영등포구 영등포로 34", position: { lat: 37.5264, lng: 126.8963 }, areaId: "area-yeongdeungpo" },
+  {
+    id: "school-osan-go",
+    name: "오산고등학교",
+    address: "경기도 오산시 청학로5번길 20",
+    position: { lat: 37.1497, lng: 127.0697 },
+    areaId: "area-osan",
+  },
+  {
+    id: "school-osan-jung",
+    name: "오산중학교",
+    address: "경기도 오산시 청학로 43",
+    position: { lat: 37.1489, lng: 127.0710 },
+    areaId: "area-osan",
+  },
+  {
+    id: "school-osan-cho",
+    name: "오산초등학교",
+    address: "경기도 오산시 가수로 16",
+    position: { lat: 37.1535, lng: 127.0620 },
+    areaId: "area-osan",
+  },
+  {
+    id: "school-maehol",
+    name: "매홀중학교",
+    address: "경기도 오산시 내삼미로48번길 17",
+    position: { lat: 37.1560, lng: 127.0770 },
+    areaId: "area-osan",
+  },
+  {
+    id: "school-unam",
+    name: "운암고등학교",
+    address: "경기도 오산시 운천로 12",
+    position: { lat: 37.1440, lng: 127.0560 },
+    areaId: "area-osan",
+  },
+  {
+    id: "school-uncheon-go",
+    name: "운천고등학교",
+    address: "경기도 오산시 운천로 193",
+    position: { lat: 37.1559140426, lng: 127.0804910337 },
+    areaId: "area-osan",
+  },
+  {
+    id: "school-uncheon-jung",
+    name: "운천중학교",
+    address: "경기도 오산시 운암로 133",
+    position: { lat: 37.1583031167, lng: 127.0780451793 },
+    areaId: "area-osan",
+  },
+  {
+    id: "school-uncheon-cho",
+    name: "운천초등학교",
+    address: "경기도 오산시 운암로 116",
+    position: { lat: 37.1559475051, lng: 127.078858823 },
+    areaId: "area-osan",
+  },
 ];
 
 export const DEFAULT_SCHOOL = MOCK_SCHOOLS[0]!;
