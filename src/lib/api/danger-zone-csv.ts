@@ -1,17 +1,11 @@
 import { readFileSync } from "fs";
 import { join } from "path";
-import type { DomainFacility } from "@/domain/entities/facility";
 
-interface CsvDangerZone {
-  type: string;
-  location: string;
-  lat: number;
-  lng: number;
-}
+type CoordPair = [number, number];
 
-let cached: CsvDangerZone[] | null = null;
+let cached: CoordPair[] | null = null;
 
-function loadCsv(): CsvDangerZone[] {
+function loadCsv(): CoordPair[] {
   if (cached) return cached;
 
   const csvPath = join(process.cwd(), "data", "danger-zones.csv");
@@ -19,48 +13,30 @@ function loadCsv(): CsvDangerZone[] {
   const lines = content.split("\n");
   const header = lines[0]!.split(",");
 
-  const idxType = header.indexOf("사고유형");
-  const idxLocation = header.indexOf("사고위치(지번)");
-  const idxLat = header.indexOf("정제WGS84위도");
-  const idxLng = header.indexOf("정제WGS84경도");
+  const idxLat = header.indexOf("위도");
+  const idxLng = header.indexOf("경도");
 
-  const results: CsvDangerZone[] = [];
+  const results: CoordPair[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i]?.trim();
     if (!line) continue;
 
-    const cols = line.replace(/"/g, "").split(",");
-
+    const cols = line.split(",");
     const lat = parseFloat(cols[idxLat] ?? "");
     const lng = parseFloat(cols[idxLng] ?? "");
     if (isNaN(lat) || isNaN(lng) || lat === 0) continue;
 
-    results.push({
-      type: cols[idxType] ?? "",
-      location: cols[idxLocation] ?? "",
-      lat,
-      lng,
-    });
+    results.push([lat, lng]);
   }
 
   cached = results;
   return results;
 }
 
-function toDomainFacility(d: CsvDangerZone, index: number): DomainFacility {
-  return {
-    id: `csv-danger-${index}`,
-    type: "danger",
-    name: d.location || `위험지역 ${index}`,
-    position: { lat: d.lat, lng: d.lng },
-    description: d.type || undefined,
-  };
-}
-
 /**
- * Get all danger zones from the CSV dataset (pre-filtered to 오산시/화성시).
+ * Get all danger zone coordinates from the CSV dataset (pre-filtered to 오산시/화성시).
  */
-export function getAllDangerZones(): DomainFacility[] {
-  return loadCsv().map(toDomainFacility);
+export function getAllDangerZones(): CoordPair[] {
+  return loadCsv();
 }

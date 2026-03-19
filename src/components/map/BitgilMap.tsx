@@ -19,15 +19,17 @@ import {
 import type { DomainFacility } from "@/domain/entities/facility";
 import type { RouteOption, GeoPoint, School } from "@/lib/maps/types";
 
+type CoordPair = [number, number];
+
 interface BitgilMapProps {
   center: GeoPoint;
   schools: School[];
   selectedSchoolId: string | null;
   onSchoolSelect: (school: School) => void;
-  streetlights: DomainFacility[];
-  cctv: DomainFacility[];
+  streetlights: CoordPair[];
+  cctv: CoordPair[];
   policeStations: DomainFacility[];
-  dangerZones: DomainFacility[];
+  dangerZones: CoordPair[];
   routes: RouteOption[];
   selectedRouteId: string | null;
   onRouteSelect: (routeId: string) => void;
@@ -86,12 +88,15 @@ function MapContent({
     const dzGlowColor = hexToRgba(dzGlow.color, 40);
     const dzCoreColor = hexToRgba(dzGlow.color, 180);
 
+    // CoordPair is [lat, lng], deck.gl expects [lng, lat]
+    const getCoordPosition = (d: CoordPair) => [d[1], d[0]] as [number, number];
+
     const result: Layer[] = [
       // Streetlight glow layer (larger radius, lower opacity)
       new ScatterplotLayer({
         id: "streetlights-glow",
         data: streetlights,
-        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getPosition: getCoordPosition,
         getFillColor: slGlowColor,
         getRadius: 12,
         radiusMinPixels: 6,
@@ -104,7 +109,7 @@ function MapContent({
       new ScatterplotLayer({
         id: "streetlights-core",
         data: streetlights,
-        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getPosition: getCoordPosition,
         getFillColor: slCoreColor,
         getRadius: 4,
         radiusMinPixels: 1.5,
@@ -117,7 +122,7 @@ function MapContent({
       new ScatterplotLayer({
         id: "cctv-glow",
         data: cctv,
-        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getPosition: getCoordPosition,
         getFillColor: cctvGlowColor,
         getRadius: 12,
         radiusMinPixels: 6,
@@ -130,7 +135,7 @@ function MapContent({
       new ScatterplotLayer({
         id: "cctv-core",
         data: cctv,
-        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getPosition: getCoordPosition,
         getFillColor: cctvCoreColor,
         getRadius: 4,
         radiusMinPixels: 1.5,
@@ -143,7 +148,7 @@ function MapContent({
       new ScatterplotLayer({
         id: "danger-zones-glow",
         data: dangerZones,
-        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getPosition: getCoordPosition,
         getFillColor: dzGlowColor,
         getRadius: 15,
         radiusMinPixels: 7,
@@ -156,7 +161,7 @@ function MapContent({
       new ScatterplotLayer({
         id: "danger-zones-core",
         data: dangerZones,
-        getPosition: (d: DomainFacility) => [d.position.lng, d.position.lat],
+        getPosition: getCoordPosition,
         getFillColor: dzCoreColor,
         getRadius: 5,
         radiusMinPixels: 2.5,

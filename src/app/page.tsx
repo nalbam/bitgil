@@ -10,14 +10,16 @@ import { useSchoolData } from "@/hooks/useSchoolData";
 import type { School } from "@/lib/maps/types";
 import type { DomainFacility } from "@/domain/entities/facility";
 
+type CoordPair = [number, number];
+
 const OSAN_CENTER = { lat: 37.15, lng: 127.068 };
 
 export default function HomePage() {
   const [allSchools, setAllSchools] = useState<School[]>([]);
-  const [streetlights, setStreetlights] = useState<DomainFacility[]>([]);
-  const [cctv, setCctv] = useState<DomainFacility[]>([]);
+  const [streetlights, setStreetlights] = useState<CoordPair[]>([]);
+  const [cctv, setCctv] = useState<CoordPair[]>([]);
   const [policeStations, setPoliceStations] = useState<DomainFacility[]>([]);
-  const [dangerZones, setDangerZones] = useState<DomainFacility[]>([]);
+  const [dangerZones, setDangerZones] = useState<CoordPair[]>([]);
   const [selectedSchool, setSelectedSchool] = useState<School | null>(null);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const { routes, isLoading, loadSchool } = useSchoolData();

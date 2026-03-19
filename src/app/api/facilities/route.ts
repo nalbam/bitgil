@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
   if (type === "streetlight") {
     const areaId = searchParams.get("areaId");
 
-    // If areaId specified, return area-scoped results
     if (areaId) {
       const area = findAreaById(areaId);
       const center = area?.center ?? OSAN_CENTER;
@@ -24,7 +23,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ ok: true, data, total: data.length });
     }
 
-    // Return all streetlights
     const data = getAllStreetlights();
     return NextResponse.json({ ok: true, data, total: data.length });
   }

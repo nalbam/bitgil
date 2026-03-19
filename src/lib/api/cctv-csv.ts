@@ -1,17 +1,11 @@
 import { readFileSync } from "fs";
 import { join } from "path";
-import type { DomainFacility } from "@/domain/entities/facility";
 
-interface CsvCctv {
-  address: string;
-  agency: string;
-  lat: number;
-  lng: number;
-}
+type CoordPair = [number, number];
 
-let cached: CsvCctv[] | null = null;
+let cached: CoordPair[] | null = null;
 
-function loadCsv(): CsvCctv[] {
+function loadCsv(): CoordPair[] {
   if (cached) return cached;
 
   const csvPath = join(process.cwd(), "data", "cctv.csv");
@@ -19,48 +13,30 @@ function loadCsv(): CsvCctv[] {
   const lines = content.split("\n");
   const header = lines[0]!.split(",");
 
-  const idxAgency = header.indexOf("관리기관명");
-  const idxAddress = header.indexOf("소재지도로명주소");
   const idxLat = header.indexOf("위도");
   const idxLng = header.indexOf("경도");
 
-  const results: CsvCctv[] = [];
+  const results: CoordPair[] = [];
 
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i]?.trim();
     if (!line) continue;
 
-    const cols = line.replace(/"/g, "").split(",");
-
+    const cols = line.split(",");
     const lat = parseFloat(cols[idxLat] ?? "");
     const lng = parseFloat(cols[idxLng] ?? "");
     if (isNaN(lat) || isNaN(lng) || lat === 0) continue;
 
-    results.push({
-      address: cols[idxAddress] ?? "",
-      agency: cols[idxAgency] ?? "",
-      lat,
-      lng,
-    });
+    results.push([lat, lng]);
   }
 
   cached = results;
   return results;
 }
 
-function toDomainFacility(c: CsvCctv, index: number): DomainFacility {
-  return {
-    id: `csv-cctv-${index}`,
-    type: "cctv",
-    name: c.address || `CCTV ${index}`,
-    position: { lat: c.lat, lng: c.lng },
-    description: c.agency || undefined,
-  };
-}
-
 /**
- * Get all CCTV facilities from the CSV dataset (pre-filtered to 오산시/화성시).
+ * Get all CCTV coordinates from the CSV dataset (pre-filtered to 오산시/화성시).
  */
-export function getAllCctv(): DomainFacility[] {
-  return loadCsv().map(toDomainFacility);
+export function getAllCctv(): CoordPair[] {
+  return loadCsv();
 }
