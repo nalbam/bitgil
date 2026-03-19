@@ -44,6 +44,7 @@ export interface School {
   name: string;
   position: GeoPoint;
   address: string;
+  areaId: string;
 }
 
 export interface Area {

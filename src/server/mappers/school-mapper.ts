@@ -17,6 +17,7 @@ export function toSchoolMetaItem(school: School): SchoolMetaItem {
     address: school.address,
     lat: school.position.lat,
     lng: school.position.lng,
+    areaId: school.areaId,
     createdAt: ts,
     updatedAt: ts,
   };
@@ -28,6 +29,7 @@ export function fromSchoolMetaItem(item: SchoolMetaItem): School {
     name: item.name,
     address: item.address,
     position: { lat: item.lat, lng: item.lng },
+    areaId: item.areaId,
   };
 }
 

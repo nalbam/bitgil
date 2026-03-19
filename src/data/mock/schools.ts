@@ -6,6 +6,7 @@ export const MOCK_SCHOOLS: School[] = [
     name: "Mapo High School",
     address: "123 Mapo-daero, Mapo-gu, Seoul",
     position: { lat: 37.5545, lng: 126.9231 },
+    areaId: "area-mapo",
   },
 ];
 
