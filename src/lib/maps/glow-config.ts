@@ -17,6 +17,65 @@ export const FACILITY_GLOW: Record<ExtendedFacilityType, GlowStyle> = {
   emergency_bell: { color: "#FF9800", radiusPx: 28, iconSize: 4, label: "비상벨" },
 };
 
+export interface HeatmapStyle {
+  colorRange: [number, number, number, number][];
+  radiusPixels: number;
+  intensity: number;
+  threshold: number;
+  debounceTimeout: number;
+  weightsTextureSize: number;
+}
+
+type HeatmapFacilityType = "streetlight" | "cctv" | "danger";
+
+export const FACILITY_HEATMAP: Record<HeatmapFacilityType, HeatmapStyle> = {
+  streetlight: {
+    colorRange: [
+      [255, 215, 0, 0],
+      [255, 215, 0, 60],
+      [255, 215, 0, 120],
+      [255, 215, 0, 200],
+      [255, 235, 59, 255],
+      [255, 255, 150, 255],
+    ],
+    radiusPixels: 40,
+    intensity: 1,
+    threshold: 0.05,
+    debounceTimeout: 500,
+    weightsTextureSize: 1024,
+  },
+  cctv: {
+    colorRange: [
+      [0, 255, 200, 0],
+      [0, 255, 200, 80],
+      [0, 255, 180, 150],
+      [0, 255, 160, 220],
+      [100, 255, 200, 255],
+      [180, 255, 230, 255],
+    ],
+    radiusPixels: 30,
+    intensity: 1,
+    threshold: 0.05,
+    debounceTimeout: 500,
+    weightsTextureSize: 1024,
+  },
+  danger: {
+    colorRange: [
+      [183, 28, 28, 0],
+      [183, 28, 28, 60],
+      [211, 47, 47, 120],
+      [244, 67, 54, 200],
+      [255, 82, 82, 255],
+      [255, 138, 128, 255],
+    ],
+    radiusPixels: 50,
+    intensity: 1.5,
+    threshold: 0.03,
+    debounceTimeout: 500,
+    weightsTextureSize: 1024,
+  },
+};
+
 export const ROUTE_COLORS: Record<
   SafetyLevel,
   {

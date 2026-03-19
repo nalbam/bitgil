@@ -18,6 +18,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1011.0",
     "@aws-sdk/lib-dynamodb": "^3.1011.0",
+    "@deck.gl/aggregation-layers": "^9.2.11",
     "@deck.gl/core": "^9.2.11",
     "@deck.gl/google-maps": "^9.2.11",
     "@deck.gl/layers": "^9.2.11",

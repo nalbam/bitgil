@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import type { Layer } from "@deck.gl/core";
 import { ScatterplotLayer, PathLayer } from "@deck.gl/layers";
+import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 import { MAPS_CONFIG } from "@/lib/maps/config";
 import { NIGHT_MAP_STYLE } from "@/lib/maps/night-style";
 import { DeckGLOverlay } from "@/components/map/DeckGLOverlay";
@@ -11,11 +12,13 @@ import { SchoolMarker } from "@/components/map/SchoolMarker";
 import { PoliceMarker } from "@/components/map/PoliceMarker";
 import {
   FACILITY_GLOW,
+  FACILITY_HEATMAP,
   ROUTE_COLORS,
   ROUTE_SELECTED_MULTIPLIER,
   ROUTE_UNSELECTED_OPACITY,
   hexToRgba,
 } from "@/lib/maps/glow-config";
+import { HeatmapTogglePanel, type HeatmapVisibility } from "@/components/map/HeatmapTogglePanel";
 import type { DomainFacility } from "@/domain/entities/facility";
 import type { RouteOption, GeoPoint, School } from "@/lib/maps/types";
 
@@ -51,6 +54,15 @@ function MapContent({
   const map = useMap();
   const [infoSchoolId, setInfoSchoolId] = useState<string | null>(null);
   const [infoPoliceId, setInfoPoliceId] = useState<string | null>(null);
+  const [heatmapVisibility, setHeatmapVisibility] = useState<HeatmapVisibility>({
+    streetlight: false,
+    cctv: false,
+    danger: false,
+  });
+
+  const handleHeatmapToggle = useCallback((layer: keyof HeatmapVisibility) => {
+    setHeatmapVisibility((prev) => ({ ...prev, [layer]: !prev[layer] }));
+  }, []);
 
   useEffect(() => {
     if (!map) return;
@@ -91,85 +103,136 @@ function MapContent({
     // CoordPair is [lat, lng], deck.gl expects [lng, lat]
     const getCoordPosition = (d: CoordPair) => [d[1], d[0]] as [number, number];
 
-    const result: Layer[] = [
-      // Streetlight glow layer (larger radius, lower opacity)
-      new ScatterplotLayer({
-        id: "streetlights-glow",
-        data: streetlights,
-        getPosition: getCoordPosition,
-        getFillColor: slGlowColor,
-        getRadius: 12,
-        radiusMinPixels: 6,
-        radiusMaxPixels: 20,
-        opacity: 0.6,
-        antialiasing: true,
-      }),
+    const result: Layer[] = [];
 
-      // Streetlight core layer (smaller radius, higher opacity)
-      new ScatterplotLayer({
-        id: "streetlights-core",
-        data: streetlights,
-        getPosition: getCoordPosition,
-        getFillColor: slCoreColor,
-        getRadius: 4,
-        radiusMinPixels: 1.5,
-        radiusMaxPixels: 6,
-        opacity: 0.9,
-        antialiasing: true,
-      }),
+    // Streetlight layers — heatmap or scatterplot
+    if (heatmapVisibility.streetlight) {
+      const hm = FACILITY_HEATMAP.streetlight;
+      result.push(
+        new HeatmapLayer({
+          id: "streetlights-heatmap",
+          data: streetlights,
+          getPosition: getCoordPosition,
+          colorRange: hm.colorRange,
+          radiusPixels: hm.radiusPixels,
+          intensity: hm.intensity,
+          threshold: hm.threshold,
+          debounceTimeout: hm.debounceTimeout,
+          weightsTextureSize: hm.weightsTextureSize,
+        }),
+      );
+    } else {
+      result.push(
+        new ScatterplotLayer({
+          id: "streetlights-glow",
+          data: streetlights,
+          getPosition: getCoordPosition,
+          getFillColor: slGlowColor,
+          getRadius: 12,
+          radiusMinPixels: 6,
+          radiusMaxPixels: 20,
+          opacity: 0.6,
+          antialiasing: true,
+        }),
+        new ScatterplotLayer({
+          id: "streetlights-core",
+          data: streetlights,
+          getPosition: getCoordPosition,
+          getFillColor: slCoreColor,
+          getRadius: 4,
+          radiusMinPixels: 1.5,
+          radiusMaxPixels: 6,
+          opacity: 0.9,
+          antialiasing: true,
+        }),
+      );
+    }
 
-      // CCTV glow layer
-      new ScatterplotLayer({
-        id: "cctv-glow",
-        data: cctv,
-        getPosition: getCoordPosition,
-        getFillColor: cctvGlowColor,
-        getRadius: 12,
-        radiusMinPixels: 6,
-        radiusMaxPixels: 20,
-        opacity: 0.6,
-        antialiasing: true,
-      }),
+    // CCTV layers — heatmap or scatterplot
+    if (heatmapVisibility.cctv) {
+      const hm = FACILITY_HEATMAP.cctv;
+      result.push(
+        new HeatmapLayer({
+          id: "cctv-heatmap",
+          data: cctv,
+          getPosition: getCoordPosition,
+          colorRange: hm.colorRange,
+          radiusPixels: hm.radiusPixels,
+          intensity: hm.intensity,
+          threshold: hm.threshold,
+          debounceTimeout: hm.debounceTimeout,
+          weightsTextureSize: hm.weightsTextureSize,
+        }),
+      );
+    } else {
+      result.push(
+        new ScatterplotLayer({
+          id: "cctv-glow",
+          data: cctv,
+          getPosition: getCoordPosition,
+          getFillColor: cctvGlowColor,
+          getRadius: 12,
+          radiusMinPixels: 6,
+          radiusMaxPixels: 20,
+          opacity: 0.6,
+          antialiasing: true,
+        }),
+        new ScatterplotLayer({
+          id: "cctv-core",
+          data: cctv,
+          getPosition: getCoordPosition,
+          getFillColor: cctvCoreColor,
+          getRadius: 4,
+          radiusMinPixels: 1.5,
+          radiusMaxPixels: 6,
+          opacity: 0.9,
+          antialiasing: true,
+        }),
+      );
+    }
 
-      // CCTV core layer
-      new ScatterplotLayer({
-        id: "cctv-core",
-        data: cctv,
-        getPosition: getCoordPosition,
-        getFillColor: cctvCoreColor,
-        getRadius: 4,
-        radiusMinPixels: 1.5,
-        radiusMaxPixels: 6,
-        opacity: 0.9,
-        antialiasing: true,
-      }),
-
-      // Danger zone glow layer
-      new ScatterplotLayer({
-        id: "danger-zones-glow",
-        data: dangerZones,
-        getPosition: getCoordPosition,
-        getFillColor: dzGlowColor,
-        getRadius: 15,
-        radiusMinPixels: 7,
-        radiusMaxPixels: 22,
-        opacity: 0.6,
-        antialiasing: true,
-      }),
-
-      // Danger zone core layer
-      new ScatterplotLayer({
-        id: "danger-zones-core",
-        data: dangerZones,
-        getPosition: getCoordPosition,
-        getFillColor: dzCoreColor,
-        getRadius: 5,
-        radiusMinPixels: 2.5,
-        radiusMaxPixels: 7,
-        opacity: 0.9,
-        antialiasing: true,
-      }),
-    ];
+    // Danger zone layers — heatmap or scatterplot
+    if (heatmapVisibility.danger) {
+      const hm = FACILITY_HEATMAP.danger;
+      result.push(
+        new HeatmapLayer({
+          id: "danger-zones-heatmap",
+          data: dangerZones,
+          getPosition: getCoordPosition,
+          colorRange: hm.colorRange,
+          radiusPixels: hm.radiusPixels,
+          intensity: hm.intensity,
+          threshold: hm.threshold,
+          debounceTimeout: hm.debounceTimeout,
+          weightsTextureSize: hm.weightsTextureSize,
+        }),
+      );
+    } else {
+      result.push(
+        new ScatterplotLayer({
+          id: "danger-zones-glow",
+          data: dangerZones,
+          getPosition: getCoordPosition,
+          getFillColor: dzGlowColor,
+          getRadius: 15,
+          radiusMinPixels: 7,
+          radiusMaxPixels: 22,
+          opacity: 0.6,
+          antialiasing: true,
+        }),
+        new ScatterplotLayer({
+          id: "danger-zones-core",
+          data: dangerZones,
+          getPosition: getCoordPosition,
+          getFillColor: dzCoreColor,
+          getRadius: 5,
+          radiusMinPixels: 2.5,
+          radiusMaxPixels: 7,
+          opacity: 0.9,
+          antialiasing: true,
+        }),
+      );
+    }
 
     // Route layers
     for (const route of routes) {
@@ -211,10 +274,11 @@ function MapContent({
     }
 
     return result;
-  }, [streetlights, cctv, dangerZones, routes, selectedRouteId, onRouteSelect]);
+  }, [streetlights, cctv, dangerZones, routes, selectedRouteId, onRouteSelect, heatmapVisibility]);
 
   return (
     <>
+      <HeatmapTogglePanel visibility={heatmapVisibility} onToggle={handleHeatmapToggle} />
       <DeckGLOverlay layers={layers} />
       {schools.map((s) => (
         <SchoolMarker
